@@ -8,6 +8,25 @@ import (
 )
 
 // Frontend acts as a client for the PostgreSQL wire protocol version 3.
+
+/*
+Frontend 作为 PostgreSQL 版本 3 的客户端实现。
+
+	ChunkReader
+
+	io.Writer
+
+	bodyLen
+		从 Header 中读取的消息体的长度
+
+	msgType
+		消息类型
+
+	partialMsg
+		表示 header 已读，但是 body 未读的标志位
+
+	authType
+*/
 type Frontend struct {
 	cr ChunkReader
 	w  io.Writer
@@ -46,7 +65,7 @@ type Frontend struct {
 
 	bodyLen    int
 	msgType    byte
-	partialMsg bool
+	partialMsg bool // 表示 header 已读，但 body 未读的标志
 	authType   uint32
 }
 
@@ -56,11 +75,15 @@ func NewFrontend(cr ChunkReader, w io.Writer) *Frontend {
 }
 
 // Send sends a message to the backend.
+
+// Send 向后端发送消息。
 func (f *Frontend) Send(msg FrontendMessage) error {
+	// 将 msg 编码到 buf 中
 	buf, err := msg.Encode(nil)
 	if err != nil {
 		return err
 	}
+	// 写入后端
 	_, err = f.w.Write(buf)
 	return err
 }
@@ -73,84 +96,94 @@ func translateEOFtoErrUnexpectedEOF(err error) error {
 }
 
 // Receive receives a message from the backend. The returned message is only valid until the next call to Receive.
+
+// Receive 从后端接收消息。返回的消息仅在下一次调用 Receive 之前有效。
 func (f *Frontend) Receive() (BackendMessage, error) {
 	if !f.partialMsg {
+		// 读取消息头，包含一个字节消息类型和四个字节消息长度
 		header, err := f.cr.Next(5)
 		if err != nil {
 			return nil, translateEOFtoErrUnexpectedEOF(err)
 		}
 
+		// 消息类型
 		f.msgType = header[0]
+		// 消息体长度
 		f.bodyLen = int(binary.BigEndian.Uint32(header[1:])) - 4
 		f.partialMsg = true
+		// 如果消息体长度为负数，则说明消息格式错误，返回错误。
 		if f.bodyLen < 0 {
 			return nil, errors.New("invalid message with negative body length received")
 		}
 	}
 
+	// 读取指定长度的消息体
 	msgBody, err := f.cr.Next(f.bodyLen)
 	if err != nil {
 		return nil, translateEOFtoErrUnexpectedEOF(err)
 	}
 
+	// 读取完毕后重置为初始状态
 	f.partialMsg = false
 
 	var msg BackendMessage
+	// 协议解析
 	switch f.msgType {
-	case '1':
+	case '1': // 解析完成
 		msg = &f.parseComplete
-	case '2':
+	case '2': // 绑定完成
 		msg = &f.bindComplete
-	case '3':
+	case '3': // 关闭完成
 		msg = &f.closeComplete
-	case 'A':
+	case 'A': // 通知响应
 		msg = &f.notificationResponse
-	case 'c':
+	case 'c': // 复制完成
 		msg = &f.copyDone
-	case 'C':
+	case 'C': // 命令完成
 		msg = &f.commandComplete
-	case 'd':
+	case 'd': // 复制数据
 		msg = &f.copyData
-	case 'D':
+	case 'D': // 数据行
 		msg = &f.dataRow
-	case 'E':
+	case 'E': // 错误响应
 		msg = &f.errorResponse
-	case 'G':
+	case 'G': // 复制输入响应
 		msg = &f.copyInResponse
-	case 'H':
+	case 'H': // 复制输出响应
 		msg = &f.copyOutResponse
-	case 'I':
+	case 'I': // 空查询响应
 		msg = &f.emptyQueryResponse
-	case 'K':
+	case 'K': // 后端密钥数据
 		msg = &f.backendKeyData
-	case 'n':
+	case 'n': // 无数据
 		msg = &f.noData
-	case 'N':
+	case 'N': // 通知响应
 		msg = &f.noticeResponse
-	case 'R':
+	case 'R': // 认证响应
 		var err error
 		msg, err = f.findAuthenticationMessageType(msgBody)
 		if err != nil {
 			return nil, err
 		}
-	case 's':
+	case 's': // 门户挂起
 		msg = &f.portalSuspended
-	case 'S':
+	case 'S': // 参数状态
 		msg = &f.parameterStatus
-	case 't':
+	case 't': // 参数描述
 		msg = &f.parameterDescription
-	case 'T':
+	case 'T': // 行描述
 		msg = &f.rowDescription
-	case 'V':
+	case 'V': // 函数调用响应
 		msg = &f.functionCallResponse
-	case 'W':
+	case 'W': // 复制双向响应
 		msg = &f.copyBothResponse
-	case 'Z':
+	case 'Z': // 准备就绪查询
 		msg = &f.readyForQuery
 	default:
 		return nil, fmt.Errorf("unknown message type: %c", f.msgType)
 	}
 
+	// 将消息体解码到 msg 中
 	err = msg.Decode(msgBody)
 	return msg, err
 }

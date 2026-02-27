@@ -4,6 +4,15 @@ import (
 	"encoding/json"
 )
 
+/*
+Sync (F): S0004
+
+	Byte1('S')
+		标识为 Sync 命令
+
+	Int32(4)
+		消息长度，包括自己，实际内容为0，加上原始的4。
+*/
 type Sync struct{}
 
 // Frontend identifies this message as sendable by a PostgreSQL frontend.

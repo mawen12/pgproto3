@@ -10,6 +10,16 @@ import (
 
 const sslRequestNumber = 80877103
 
+/*
+SSLRequest (F):
+
+	Int32(8)
+		消息长度，包括自己
+
+	Int32(80877103)
+		SSL 请求代码。该值被选择为在最高有效16位中包含1234,
+		在最低有效16位中包含5679。（为避免混淆，此代码不得与任何协议版本号相同）
+*/
 type SSLRequest struct {
 }
 

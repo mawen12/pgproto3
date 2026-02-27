@@ -12,6 +12,7 @@ import (
 	"github.com/jackc/pgio"
 )
 
+// Bind 代表了 PostgreSQL 协议中的 Bind 消息。
 type Bind struct {
 	DestinationPortal    string
 	PreparedStatement    string

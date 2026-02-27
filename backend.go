@@ -8,11 +8,15 @@ import (
 )
 
 // Backend acts as a server for the PostgreSQL wire protocol version 3.
+
+// Backend 充当 PostgreSQL 版本 3 的服务器。
 type Backend struct {
 	cr ChunkReader
 	w  io.Writer
 
 	// Frontend message flyweights
+	//
+	// 前端消息享元，即前端可以发出的消息
 	bind           Bind
 	cancelRequest  CancelRequest
 	_close         Close
@@ -31,9 +35,9 @@ type Backend struct {
 	sync           Sync
 	terminate      Terminate
 
-	bodyLen    int
-	msgType    byte
-	partialMsg bool
+	bodyLen    int  // 消息内容长度
+	msgType    byte // 消息类型
+	partialMsg bool // 是否
 	authType   uint32
 }
 
