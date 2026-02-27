@@ -6,6 +6,25 @@ import (
 	"strconv"
 )
 
+/*
+ErrorResponse (B)
+
+	Byte1('E')
+		标识该消息是一个 error
+
+	Int32
+		消息的字节长度，包含本身
+
+消息体由一个或多个标识符字段组成。跟随零字节作为分隔。
+字段可能以任意顺序出现。每个字段如下：
+
+	Byte1
+		标识字段类型的代码，如果是0字节，那就是消息分隔符，并且其后没有内容跟随。
+		由于将来可能会添加更多的字段类型，因此前端应该默默地忽略无法识别类型的字段。
+
+	String
+		字段值
+*/
 type ErrorResponse struct {
 	Severity            string
 	SeverityUnlocalized string // only in 9.6 and greater
