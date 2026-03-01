@@ -22,6 +22,24 @@ ErrorResponse (B)
 		标识字段类型的代码，如果是0字节，那就是消息分隔符，并且其后没有内容跟随。
 		由于将来可能会添加更多的字段类型，因此前端应该默默地忽略无法识别类型的字段。
 
+		S
+			Severity：字段常量为 ERROR、FATAL 或 PANIC（在 error message 中），或 WRANING、NOTICE、DEBUG、INFO 或 LOG （在 notice message 中）。
+			或是其本地化翻译之一，总是提供。
+
+		V
+
+		C
+
+		M
+
+		D
+
+		H
+
+		P
+
+		p
+
 	String
 		字段值
 */

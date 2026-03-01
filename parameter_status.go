@@ -5,6 +5,21 @@ import (
 	"encoding/json"
 )
 
+/*
+ParameterStatus (B)
+
+	Byte1('S')
+		标识消息作为运行时参数状态上报。
+
+	Int32
+		消息的字节长度，包含本身。
+
+	String
+		被上报的运行时参数的名称。
+
+	String
+		被上报的运行时参数的值。
+*/
 type ParameterStatus struct {
 	Name  string
 	Value string

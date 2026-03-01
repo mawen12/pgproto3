@@ -5,6 +5,19 @@ import (
 	"errors"
 )
 
+/*
+ReadyForQuery (B)
+
+	Byte1('Z')
+		标识消息类型，每当后端准备好进行新的查询周期时，就会发送 ReadForQuery。
+
+	Int32(5)
+		消息的字节长度，包含本身。只有5字节。
+
+	Byte1
+		当前后端事务状态标识符。如果 idle（不在事务块中）则为 'I'；如果在事务块中，则为 'T'；
+		如果在一个失败的事务块中（查询将会被拒绝，直到块结束）则为 'E'。
+*/
 type ReadyForQuery struct {
 	TxStatus byte
 }

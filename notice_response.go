@@ -1,5 +1,23 @@
 package pgproto3
 
+/*
+NoticeResponse (B)
+
+	Byte1('N')
+		标识消息是一个 notice。
+
+	Int32
+		消息的字节长度，包含本身。
+
+消息体由一个或多个标识符字段组成，并跟随一个0字节作为终止符。
+字段可能以任意顺序出现，每个字段如下：
+
+	Byte1
+		标识字段类型的代码，如果是0，该消息终止且没有后续字符串。
+
+	String
+		字段值。
+*/
 type NoticeResponse ErrorResponse
 
 // Backend identifies this message as sendable by the PostgreSQL backend.

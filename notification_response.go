@@ -8,6 +8,24 @@ import (
 	"github.com/jackc/pgio"
 )
 
+/*
+NotificationResponse (B)
+
+	Byte1('A')
+		标识消息是一个 notification 响应。
+
+	Int32
+		消息的字节长度，包含本身。
+
+	Int32
+		通知后端进程的进程ID。
+
+	String
+		发出通知的 channel 名称。
+
+	String
+		从通知进程传递的 "payload" 字符串。
+*/
 type NotificationResponse struct {
 	PID     uint32
 	Channel string
